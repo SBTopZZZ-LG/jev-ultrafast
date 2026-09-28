@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import sys
 import time
 from pathlib import Path
@@ -22,6 +23,10 @@ class Browser:
         ensure_daemon()
         self.target = cdp("Target.createTarget", url="about:blank", background=True)["targetId"]
         self.session = cdp("Target.attachToTarget", targetId=self.target, flatten=True)["sessionId"]
+        # Hidden tabs throttle modal/animation rendering (e.g. Google Flights menus), so snapshots
+        # can see an inert empty page. JEV_ACTIVATE_TAB=1 foregrounds this owned tab to unthrottle.
+        if os.environ.get("JEV_ACTIVATE_TAB") == "1":
+            cdp("Target.activateTarget", targetId=self.target)
         self.call("Emulation.setDeviceMetricsOverride", width=1120, height=780, deviceScaleFactor=1, mobile=False)
         # Keep rAF/menus rendering in an owned background tab, without activating the user's Chrome tab.
         self.call("Emulation.setFocusEmulationEnabled", enabled=True)

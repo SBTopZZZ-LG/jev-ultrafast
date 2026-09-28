@@ -116,7 +116,11 @@ def choose(state, goal, history):
         "questions": questions,
     }
     started = time.perf_counter()
-    result = post_json("https://api.typesafe.ai/v1/systemone", os.environ["TYPESAFE_API_KEY"], body)
+    endpoint = os.environ.get("JEV_ENDPOINT", "https://api.typesafe.ai/v1/systemone")
+    key = os.environ.get("JEV_API_KEY") or os.environ.get("TYPESAFE_API_KEY")
+    if not key:
+        raise ValueError("Set JEV_API_KEY or TYPESAFE_API_KEY; no decision was made.")
+    result = post_json(endpoint, key, body)
     operation_answer = validate_choice(result["answers"].get("operation", {}), operations)
     operation = operation_answer["choice"]
     target = None
